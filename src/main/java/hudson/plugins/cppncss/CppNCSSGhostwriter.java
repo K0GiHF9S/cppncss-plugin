@@ -2,11 +2,11 @@ package hudson.plugins.cppncss;
 
 import hudson.AbortException;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import hudson.model.BuildListener;
 import hudson.model.HealthReport;
 import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.cppncss.parser.Statistic;
 import hudson.plugins.cppncss.parser.StatisticsResult;
 import hudson.plugins.helpers.BuildProxy;
@@ -46,7 +46,7 @@ public class CppNCSSGhostwriter
         this.targets = targets;
     }
 
-    public boolean performFromMaster(AbstractBuild<?, ?> build, FilePath executionRoot, BuildListener listener)
+    public boolean performFromMaster(Run<?, ?> build, FilePath executionRoot, TaskListener listener)
             throws InterruptedException, IOException {
     	if (targets != null && targets.length > 0) {
 	    	List<Action> actions = build.getActions();
@@ -73,7 +73,7 @@ public class CppNCSSGhostwriter
         return true;
     }
 
-    public boolean performFromSlave(BuildProxy build, BuildListener listener) throws InterruptedException, IOException {
+    public boolean performFromSlave(BuildProxy build, TaskListener listener) throws InterruptedException, IOException {
         FilePath[] paths = build.getExecutionRootDir().list(reportFilenamePattern);
         StatisticsResult results = null;
         Set<String> parsedFiles = new HashSet<String>();
@@ -95,7 +95,7 @@ public class CppNCSSGhostwriter
         }
         if (results != null) {
             CppNCSSBuildIndividualReport action = new CppNCSSBuildIndividualReport(results, functionCcnViolationThreshold, functionNcssViolationThreshold);
-            
+
             if (targets != null && targets.length > 0) {
                 HealthReport r = null;
                 for (CppNCSSHealthTarget target : targets) {

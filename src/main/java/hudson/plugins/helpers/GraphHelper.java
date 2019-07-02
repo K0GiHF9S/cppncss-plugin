@@ -1,6 +1,5 @@
 package hudson.plugins.helpers;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.plugins.cppncss.AbstractBuildReport;
 import hudson.plugins.cppncss.parser.Statistic;
@@ -37,17 +36,17 @@ import javax.annotation.Nonnull;
  * @since 09-Jan-2008 21:30:15
  */
 public class GraphHelper {
-	
+
 	public interface CategoryDatasetBuilder {
 		CategoryDataset buildData();
 	}
-	
+
 	public interface DataCollector {
-		
+
 		long getCollectedNumber(AbstractBuildReport<?> action);
 		String getTitle();
 	}
-	
+
     /**
      * Do not instantiate GraphHelper.
      */
@@ -68,18 +67,18 @@ public class GraphHelper {
         rsp.sendRedirect2(req.getContextPath() + "/images/headless.png");
     }
 
-    public static JFreeChart buildChart(final AbstractBuild<?, ?> build, final @CheckForNull Integer functionCcnViolationThreshold, final @CheckForNull Integer functionNcssViolationThreshold) {
-    	
+    public static JFreeChart buildChart(final Run<?, ?> build, final @CheckForNull Integer functionCcnViolationThreshold, final @CheckForNull Integer functionNcssViolationThreshold) {
+
         final JFreeChart chart = ChartFactory.createStackedAreaChart(
                 null,                     // chart title
                 null,                     // unused
                 "Total Files",            // range axis label
                 buildDataset(build , new DataCollector() {
-					
+
 					public String getTitle() {
 						return "Files";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						return action.getResults().getFileResults().size();
 					}
@@ -112,70 +111,70 @@ public class GraphHelper {
         plot.setInsets(new RectangleInsets(0, 0, 0, 5.0));
 
         CategoryItemRenderer firstRender= new DefaultCategoryItemRenderer();
-        plot.setRenderer(firstRender); 
+        plot.setRenderer(firstRender);
 
         int index = 1;
 		//Second
         build_category(build, chart, index, Color.BLUE, "Non Commenting Source Statements", new CategoryDatasetBuilder() {
 			public CategoryDataset buildData() {
 				return buildDataset(build, new DataCollector() {
-					
+
 					public String getTitle() {
 						return "NCSS";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						return action.getTotals().getFileTotal().getNcss();
 					}
 				});
 			}
         });
-        
+
         index ++;
       //Third
         build_category(build, chart, index, Color.GREEN, "McCabe's Cyclomatic Number", new CategoryDatasetBuilder() {
 			public CategoryDataset buildData() {
 				return buildDataset(build, new DataCollector() {
-					
+
 					public String getTitle() {
 						return "CCN";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						return action.getTotals().getFileTotal().getCcn();
 					}
 				});
 			}
 		});
-        
+
         index ++;
       //Fouth
         build_category(build, chart, index, Color.ORANGE, "Total Functions", new CategoryDatasetBuilder() {
 			public CategoryDataset buildData() {
 				return buildDataset(build, new DataCollector() {
-					
+
 					public String getTitle() {
 						return "Functions";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						return action.getTotals().getFileTotal().getFunctions();
 					}
 				});
 			}
 		});
-        
-        
+
+
         index ++;
       //Fifth
         build_category(build, chart, index, Color.CYAN, "CCN Violated Functions", new CategoryDatasetBuilder() {
 			public CategoryDataset buildData() {
 				return buildDataset(build, new DataCollector() {
-					
+
 					public String getTitle() {
 						return "CCNVF";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						Collection<Statistic> functionResults = action.getResults().getFunctionResults();
 						int ccnViolatedFunctions = 0;
@@ -190,17 +189,17 @@ public class GraphHelper {
 				});
 			}
 		});
-        
+
         index ++;
       //Sixth
         build_category(build, chart, index, Color.MAGENTA, "NCSS Violated Functions", new CategoryDatasetBuilder() {
 			public CategoryDataset buildData() {
 				return buildDataset(build, new DataCollector() {
-					
+
 					public String getTitle() {
 						return "NCSSVF";
 					}
-					
+
 					public long getCollectedNumber(AbstractBuildReport action) {
 						Collection<Statistic> functionResults = action.getResults().getFunctionResults();
 		            	int ncssViolatedFunctions = 0;
@@ -215,32 +214,32 @@ public class GraphHelper {
 				});
 			}
 		});
-        
+
         return chart;
     }
 
-	private static void build_category(AbstractBuild<?, ?> build,
+	private static void build_category(Run<?, ?> build,
 			final JFreeChart chart, int index, Color color, String title, CategoryDatasetBuilder datasetBuilder) {
 		    NumberAxis axis= new NumberAxis(title);
 		    axis.setLabelPaint(color);
 		    axis.setAxisLinePaint(color);
-		    axis.setTickLabelPaint(color);        
+		    axis.setTickLabelPaint(color);
 		    CategoryPlot categoryPlot = chart.getCategoryPlot();
-		    categoryPlot.setRangeAxis(index, axis);        
+		    categoryPlot.setRangeAxis(index, axis);
 		    categoryPlot.setDataset(index, datasetBuilder.buildData());
 		    categoryPlot.mapDatasetToRangeAxis(index,index);
 		    categoryPlot.mapDatasetToDomainAxis(index,0);
-		    CategoryItemRenderer rendu= new DefaultCategoryItemRenderer();        
+		    CategoryItemRenderer rendu= new DefaultCategoryItemRenderer();
 		    rendu.setBasePaint(color);
 		    categoryPlot.setRenderer(index,rendu);
 	}
 
 	@Nonnull
-	private static CategoryDataset buildDataset(@CheckForNull AbstractBuild<?, ?> build, @Nonnull DataCollector collector) {
+	private static CategoryDataset buildDataset(@CheckForNull Run<?, ?> build, @Nonnull DataCollector collector) {
     	DataSetBuilder<String, NumberOnlyBuildLabel> builder = new DataSetBuilder<String, NumberOnlyBuildLabel>();
 
     	if (build != null) {
-			for (AbstractBuild<?, ?> lastBuild = build; lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
+			for (Run<?, ?> lastBuild = build; lastBuild != null; lastBuild = lastBuild.getPreviousBuild()) {
 				ChartUtil.NumberOnlyBuildLabel label = new ChartUtil.NumberOnlyBuildLabel((Run<?, ?>) lastBuild);
 				AbstractBuildReport action = lastBuild.getAction(AbstractBuildReport.class);
 				if (action != null) {

@@ -1,9 +1,9 @@
 package hudson.plugins.helpers;
 
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.IOException2;
 
 import java.io.IOException;
@@ -28,8 +28,8 @@ public final class BuildProxy implements Serializable {
     // It should not be serialized over the channel (JENKINS-49237)
     private final Calendar timestamp;
     // TODO: it should not be serialized over the channel. It should exist only on the master side
-    private final List<AbstractBuildAction<AbstractBuild<?, ?>>> actions =
-            new ArrayList<AbstractBuildAction<AbstractBuild<?, ?>>>();
+    private final List<AbstractBuildAction<Run<?, ?>>> actions =
+            new ArrayList<AbstractBuildAction<Run<?, ?>>>();
     //TODO: This class should not be serialized as well?
     private Result result = null;
     private boolean continueBuild = true;
@@ -42,14 +42,16 @@ public final class BuildProxy implements Serializable {
      *
      * @param ghostwriter The ghostwriter that will be doing the work for the publisher.
      * @param build       The build.
+     * @param workspace   The workspace.
      * @param listener    The build listener.
      * @return {@code true} if the build can continue.
      * @throws IOException          on IOException.
      * @throws InterruptedException on InterruptedException.
      */
-    public static boolean doPerform(Ghostwriter ghostwriter,
-                                    AbstractBuild<?, ?> build,
-                                    BuildListener listener)
+    public static void doPerform(Ghostwriter ghostwriter,
+                                    Run<?, ?> build,
+                                    FilePath workspace,
+                                    TaskListener listener)
             throws IOException, InterruptedException {
 
         // first, do we need to do anything on the slave
@@ -61,9 +63,9 @@ public final class BuildProxy implements Serializable {
             BuildProxy buildProxy = new BuildProxy(
                     //TODO: It is not compatible with custom artifact managers
                     new FilePath(build.getArtifactsDir()),
-                    new FilePath(build.getProject().getRootDir()),
+                    new FilePath(build.getParent().getRootDir()),
                     new FilePath(build.getRootDir()),
-                    build.getModuleRoot(),
+                    workspace,
                     build.getTimestamp());
 
             BuildProxyCallableHelper callableHelper = new BuildProxyCallableHelper(buildProxy, ghostwriter, listener);
@@ -75,7 +77,7 @@ public final class BuildProxy implements Serializable {
 
                 // terminate the build if necessary
                 if (!buildProxy.isContinueBuild()) {
-                    return false;
+                    return;
                 }
             } catch (Exception e) {
                 throw unwrapException(e, listener);
@@ -86,8 +88,9 @@ public final class BuildProxy implements Serializable {
 
         final Ghostwriter.MasterGhostwriter masterGhostwriter = Ghostwriter.MasterGhostwriter.class.cast(ghostwriter);
 
-        return masterGhostwriter == null
-                || masterGhostwriter.performFromMaster(build, build.getModuleRoot(), listener);
+        if(masterGhostwriter != null) {
+            masterGhostwriter.performFromMaster(build, workspace, listener);
+        }
     }
 
     //TODO: this logic undermines error propagation in the code
@@ -103,7 +106,7 @@ public final class BuildProxy implements Serializable {
      * @throws RuntimeException     if the wrapped exception is neither an IOException nor an InterruptedException.
      */
     private static RuntimeException unwrapException(Exception e,
-                                                    BuildListener listener)
+                                                    TaskListener listener)
             throws IOException, InterruptedException {
 
         if (e.getCause() instanceof IOException) {
@@ -129,9 +132,9 @@ public final class BuildProxy implements Serializable {
      *
      * @param build The build to update.
      */
-    public void updateBuild(AbstractBuild<?, ?> build) {
+    public void updateBuild(Run<?, ?> build) {
         // update the actions
-        for (AbstractBuildAction<AbstractBuild<?, ?>> action : actions) {
+        for (AbstractBuildAction<Run<?, ?>> action : actions) {
             if (!build.getActions().contains(action)) {
                 action.setBuild(build);
                 build.getActions().add(action);
@@ -179,7 +182,7 @@ public final class BuildProxy implements Serializable {
      *
      * @return Value for property 'actions'.
      */
-    public List<AbstractBuildAction<AbstractBuild<?, ?>>> getActions() {
+    public List<AbstractBuildAction<Run<?, ?>>> getActions() {
         return actions;
     }
 
@@ -249,7 +252,7 @@ public final class BuildProxy implements Serializable {
     public Calendar getTimestamp() {
         return timestamp;
     }
-    
+
     /**
      * Getter for property 'continueBuild'.
      *

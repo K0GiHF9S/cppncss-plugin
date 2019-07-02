@@ -14,7 +14,9 @@ import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.beanutils.ConvertUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -36,7 +38,7 @@ public class CppNCSSPublisher extends AbstractPublisherImpl {
         this.reportFilenamePattern = reportFilenamePattern;
         this.functionCcnViolationThreshold = functionCcnViolationThreshold;
         this.functionNcssViolationThreshold = functionNcssViolationThreshold;
-        
+
         this.targets = targets == null ? new CppNCSSHealthTarget[0] : targets;
     }
 
@@ -44,18 +46,38 @@ public class CppNCSSPublisher extends AbstractPublisherImpl {
         return reportFilenamePattern;
     }
 
+    @DataBoundSetter
+    public void setReportFilenamePattern(String reportFilenamePattern) {
+        this.reportFilenamePattern = reportFilenamePattern;
+    }
+
 	public Integer getFunctionCcnViolationThreshold() {
 		return functionCcnViolationThreshold;
 	}
+
+    @DataBoundSetter
+    public void setFunctionCcnViolationThreshold(Integer functionCcnViolationThreshold) {
+        this.functionCcnViolationThreshold = functionCcnViolationThreshold;
+    }
 
 	public Integer getFunctionNcssViolationThreshold() {
 		return functionNcssViolationThreshold;
 	}
 
+    @DataBoundSetter
+    public void setFunctionNcssViolationThreshold(Integer functionNcssViolationThreshold) {
+        this.functionNcssViolationThreshold = functionNcssViolationThreshold;
+    }
+
 	// TODO: replace by lists
 	@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Legacy code, suppressed due to the performance reasons")
 	public CppNCSSHealthTarget[] getTargets() {
         return targets;
+    }
+
+    @DataBoundSetter
+    public void setTargets(CppNCSSHealthTarget[] targets) {
+        this.targets = targets == null ? new CppNCSSHealthTarget[0] : targets.clone();
     }
 
     /**
@@ -80,6 +102,7 @@ public class CppNCSSPublisher extends AbstractPublisherImpl {
         return new CppNCSSGhostwriter(reportFilenamePattern, functionCcnViolationThreshold, functionNcssViolationThreshold, targets);
     }
 
+    @Symbol("publishCppNCSS")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 

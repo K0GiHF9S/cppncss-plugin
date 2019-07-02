@@ -1,8 +1,8 @@
 package hudson.plugins.cppncss;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.HealthReport;
+import hudson.model.Run;
 import hudson.plugins.cppncss.parser.StatisticsResult;
 
 import org.kohsuke.stapler.StaplerRequest;
@@ -10,12 +10,12 @@ import org.kohsuke.stapler.StaplerResponse;
 
 /**
  * TODO javadoc.
- * 
+ *
  * @author Stephen Connolly
  * @since 08-Jan-2008 21:15:05
  */
 public class CppNCSSBuildIndividualReport extends
-		AbstractBuildReport<AbstractBuild<?, ?>> implements Action {
+		AbstractBuildReport<Run<?, ?>> implements Action {
 
 	private HealthReport healthReport;
 
@@ -30,12 +30,12 @@ public class CppNCSSBuildIndividualReport extends
 
 	/**
 	 * Write-once setter for property 'build'.
-	 * 
+	 *
 	 * @param build
 	 *            The value to set the build to.
 	 */
 	@Override
-	public synchronized void setBuild(AbstractBuild<?, ?> build) {
+	public synchronized void setBuild(Run<?, ?> build) {
 		super.setBuild(build);
 		if (this.getBuild() != null) {
 			getResults().setOwner(this.getBuild());

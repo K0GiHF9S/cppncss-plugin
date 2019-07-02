@@ -1,11 +1,17 @@
 package hudson.plugins.helpers;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.Recorder;
+import jenkins.tasks.SimpleBuildStep;
 
 import java.io.IOException;
+
+import javax.annotation.Nonnull;
 
 /**
  * An abstract Publisher that is designed to work with a Ghostwriter.
@@ -13,7 +19,7 @@ import java.io.IOException;
  * @author Stephen Connolly
  * @since 28-Jan-2008 22:32:46
  */
-public abstract class AbstractPublisherImpl extends Recorder {
+public abstract class AbstractPublisherImpl extends Recorder  implements SimpleBuildStep {
 
     /**
      * Creates the configured Ghostwriter.
@@ -25,9 +31,9 @@ public abstract class AbstractPublisherImpl extends Recorder {
     /**
      * {@inheritDoc}
      */
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener)
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull final TaskListener listener)
             throws InterruptedException, IOException {
-        return BuildProxy.doPerform(newGhostwriter(), build, listener);
+        BuildProxy.doPerform(newGhostwriter(), build, workspace, listener);
     }
 
     /**

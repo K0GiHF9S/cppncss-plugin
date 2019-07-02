@@ -1,12 +1,13 @@
 package hudson.plugins.helpers;
 
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.HealthReportingAction;
 import hudson.model.Run;
+import hudson.model.Action;
+import hudson.model.HealthReportingAction;
 import hudson.plugins.cppncss.parser.StatisticSummary;
 import hudson.plugins.cppncss.parser.StringStatisticSummary;
 import jenkins.model.RunAction2;
+import jenkins.tasks.SimpleBuildStep;
 
 import java.io.Serializable;
 
@@ -17,7 +18,7 @@ import java.io.Serializable;
  * @param <BUILD> the build class that the action is associated with.
  * @since 04-Feb-2008 19:41:25
  */
-public abstract class AbstractBuildAction<BUILD extends AbstractBuild<?, ?>> 
+public abstract class AbstractBuildAction<BUILD extends Run<?, ?>>
 	implements HealthReportingAction, Serializable, RunAction2
 {
     /** Unique identifier for this class. */

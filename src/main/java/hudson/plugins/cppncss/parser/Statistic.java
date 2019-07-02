@@ -1,7 +1,7 @@
 package hudson.plugins.cppncss.parser;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.util.IOException2;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -26,7 +26,7 @@ public class Statistic implements Serializable {
      * @deprecated this field should not be used
      */
     @CheckForNull
-    private transient AbstractBuild<?, ?> owner;
+    private transient Run<?, ?> owner;
 
     private String name;
     private long functions;
@@ -40,7 +40,7 @@ public class Statistic implements Serializable {
     	StatisticsResult result = new StatisticsResult();
         Collection<Statistic> fileResults = new ArrayList<Statistic>();
         Collection<Statistic> functionResults = new ArrayList<Statistic>();
-        
+
         FileInputStream fis = null;
         BufferedInputStream bis = null;
         try {
@@ -56,7 +56,7 @@ public class Statistic implements Serializable {
             expectNextTag(parser, "cppncss");
 
             // skip until we get to the <measure> tag
-            while (parser.getDepth() > 0 && (parser.getEventType() != XmlPullParser.START_TAG 
+            while (parser.getDepth() > 0 && (parser.getEventType() != XmlPullParser.START_TAG
             		|| !"measure".equals(parser.getName()))) {
                 parser.next();
             }
@@ -66,7 +66,7 @@ public class Statistic implements Serializable {
         	while(parser.getDepth() > 1 && (parser.getEventType() != XmlPullParser.START_TAG || !"item".equals(parser.getName()))) {
         		parser.next();
         	}
-        	
+
         	while(parser.getDepth() >= depth) {
     			if(parser.getDepth() == 3 && parser.getEventType() == XmlPullParser.START_TAG && "item".equals(parser.getName())){
     				String functionName = parser.getAttributeValue(0);
@@ -110,13 +110,13 @@ public class Statistic implements Serializable {
     			}
     			parser.next();
         	}
-        	
+
         	 // skip until we get to the <measure> tag
-            while (parser.getDepth() > 0 && (parser.getEventType() != XmlPullParser.START_TAG 
+            while (parser.getDepth() > 0 && (parser.getEventType() != XmlPullParser.START_TAG
             		|| !"measure".equals(parser.getName()))) {
                 parser.next();
             }
-            
+
         	//skip until we get to <item> tag
         	while(parser.getDepth() > 1 && (parser.getEventType() != XmlPullParser.START_TAG || !"item".equals(parser.getName()))) {
         		parser.next();
@@ -172,7 +172,7 @@ public class Statistic implements Serializable {
                 fis.close();
             }
         }
-        
+
         result.setFunctionResults(functionResults);
         result.setFileResults(fileResults);
         return  result;
@@ -245,7 +245,7 @@ public class Statistic implements Serializable {
         } else if (results.length == 1) {
             return results[0];
         } else {
-            
+
             List<String> indivNames = new ArrayList<String>();
             for (Collection<Statistic> result : results) {
                 for (Statistic individual : result) {
@@ -315,18 +315,18 @@ public class Statistic implements Serializable {
      */
     @Deprecated
     @CheckForNull
-	public AbstractBuild<?, ?> getOwner() {
+	public Run<?, ?> getOwner() {
         return owner;
     }
 
-    public void setOwner(AbstractBuild<?, ?> owner) {
+    public void setOwner(Run<?, ?> owner) {
         this.owner = owner;
     }
-    
+
     public void setParentElement(String parentElement) {
     	this.parentElement = parentElement;
     }
-    
+
     public String getParentElement(){
     	return parentElement;
     }
